@@ -26,12 +26,7 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
     navigate('/login');
   };
 
-  const handleProfile = () => {
-    navigate('/profile');
-    setUserMenuOpen(false);
-  };
-
-  // ✅ Função para lidar com clique nos links - AGORA CORRETA
+  // ✅ Função para lidar com clique nos links
   const handleLinkClick = () => {
     // ✅ Agora onClose() já é inteligente - só fecha no mobile
     onClose();
