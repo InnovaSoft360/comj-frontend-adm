@@ -1,6 +1,7 @@
 import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom'; // ✅ Remove useNavigate
+import { useAuth, getUserInitials } from '@/hooks/useAuth';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -19,24 +20,16 @@ const menuItems = [
 
 export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose, onToggleSidebar }: SidebarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); // ✅ Mantém apenas useLocation
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    navigate('/login');
+    logout();
+    setUserMenuOpen(false);
   };
 
-  // ✅ Função para lidar com clique nos links
   const handleLinkClick = () => {
-    // ✅ Agora onClose() já é inteligente - só fecha no mobile
     onClose();
-  };
-
-  // Simulação de usuário
-  const user = {
-    name: 'Domingos Nascimento',
-    role: 'Administrador',
-    initials: 'DN'
   };
 
   return (
@@ -44,7 +37,7 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
       {/* Sidebar Container */}
       <div className="h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
         
-        {/* Logo Section - Compacta */}
+        {/* Logo Section */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             {!isCollapsed ? (
@@ -94,7 +87,7 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
           </div>
         </div>
 
-        {/* Navigation Menu - COM LINK CORRETO */}
+        {/* Navigation Menu */}
         <nav className="flex-1 flex flex-col justify-center px-3 space-y-2">
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
@@ -116,31 +109,26 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
                   active:scale-95
                 `}
               >
-                {/* Efeito de brilho no hover (só quando não está ativo) */}
                 {!isActive && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 )}
 
-                {/* Ícone com animação */}
                 <div className={`flex-shrink-0 transition-all duration-300 group-hover:scale-110 ${
                   isActive ? 'text-white scale-110' : 'text-current'
                 }`}>
                   {item.icon}
                 </div>
                 
-                {/* Label */}
                 {!isCollapsed && (
                   <span className="ml-3 font-medium text-sm truncate transition-all duration-300">
                     {item.label}
                   </span>
                 )}
 
-                {/* Indicador de página ativa (só quando expandido) */}
                 {isActive && !isCollapsed && (
                   <div className="absolute right-3 w-2 h-2 bg-white rounded-full shadow-sm"></div>
                 )}
 
-                {/* Barra lateral indicadora (só quando collapsed) */}
                 {isActive && isCollapsed && (
                   <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-white rounded-r-lg shadow-sm"></div>
                 )}
@@ -149,7 +137,7 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
           })}
         </nav>
 
-        {/* User Section - COMPACTA */}
+        {/* User Section */}
         <div className="p-3 border-t border-gray-200 dark:border-gray-700">
           <div className="relative">
             <button
@@ -162,19 +150,19 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
                 ${isCollapsed ? 'justify-center' : ''}
               `}
             >
-              {/* Avatar Compacto */}
+              {/* Avatar */}
               <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:scale-110 transition-transform duration-300">
-                {user.initials}
+                {user ? getUserInitials(user) : 'US'}
               </div>
               
-              {/* User Info - Só mostra quando expandido */}
-              {!isCollapsed && (
+              {/* User Info */}
+              {!isCollapsed && user && (
                 <div className="ml-3 flex-1 min-w-0 text-left">
                   <p className="text-sm font-medium text-gray-800 dark:text-white truncate">
-                    {user.name.split(' ')[0]}
+                    {user.firstName}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {user.role}
+                    Administrador
                   </p>
                 </div>
               )}
@@ -187,7 +175,6 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
                 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 
                 py-2 z-40 min-w-[140px] backdrop-blur-sm
                 ${isCollapsed ? 'left-1 right-1' : 'left-2 right-2'}
-                animate-in fade-in-0 zoom-in-95 duration-200
               `}>
                 <Link 
                   to="/profile"
