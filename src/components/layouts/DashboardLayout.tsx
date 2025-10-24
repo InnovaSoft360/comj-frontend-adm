@@ -28,7 +28,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
       {/* TopBar - APENAS MOBILE */}
       <div className="lg:hidden">
-        <TopBar onToggleSidebar={toggleSidebar} />
+        <TopBar /> {/* ✅ Remove onToggleSidebar daqui */}
       </div>
 
       {/* Conteúdo Principal */}

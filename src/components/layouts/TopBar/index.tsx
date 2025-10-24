@@ -2,24 +2,21 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaChevronDown } from 'react-icons/fa';
 
-interface TopBarProps {
-  onToggleSidebar: () => void;
-}
-
-const menuItems = [
-  { icon: <FaHome className="w-4 h-4" />, label: 'Dashboard', path: '/analytics' },
-  { icon: <FaUserFriends className="w-4 h-4" />, label: 'Candidaturas', path: '/candidates' },
-  { icon: <FaUsers className="w-4 h-4" />, label: 'Usuários', path: '/users' },
-  { icon: <FaCog className="w-4 h-4" />, label: 'Sistema', path: '/system' },
-];
-
-export default function TopBar({ onToggleSidebar }: TopBarProps) {
+export default function TopBar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ✅ AGORA DEFINIDO DENTRO DO COMPONENTE
+  const menuItems = [
+    { icon: <FaHome className="w-4 h-4" />, label: 'Dashboard', path: '/analytics' },
+    { icon: <FaUserFriends className="w-4 h-4" />, label: 'Candidaturas', path: '/candidates' },
+    { icon: <FaUsers className="w-4 h-4" />, label: 'Usuários', path: '/users' },
+    { icon: <FaCog className="w-4 h-4" />, label: 'Sistema', path: '/system' },
+  ];
 
   // Simulação de usuário
   const user = {
