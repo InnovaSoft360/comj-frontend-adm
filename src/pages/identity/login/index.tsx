@@ -1,31 +1,43 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaArrowRight, FaHome, FaUsers, FaFileAlt, FaShieldAlt } from "react-icons/fa";
+import { useAuth } from "@/hooks/useAuth";
+import { useAlert } from "@/components/ui/customAlert";
 
 export default function Login() {
-  const navigate = useNavigate();
+  const { login, isLoading } = useAuth();
+  const { showAlert } = useAlert();
+  
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    // 🔥 SIMULAÇÃO DE LOGIN - PASSA DIRETO
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate("/analytics");
-    }, 1500);
+    try {
+      await login(formData.email, formData.password);
+      showAlert('Login realizado com sucesso!', 'success');
+    } catch (error: any) {
+      showAlert(error.message, 'error');
+    }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Converte SEMPRE para minúsculas
+    const emailValue = e.target.value.toLowerCase();
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      email: emailValue
+    });
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      password: e.target.value
     });
   };
 
@@ -99,7 +111,7 @@ export default function Login() {
           {/* Form */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl lg:rounded-3xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 lg:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Field */}
+              {/* Email Field - SEMPRE MINÚSCULAS */}
               <div className="group">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">
                   E-mail
@@ -112,11 +124,11 @@ export default function Login() {
                     type="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
+                    onChange={handleEmailChange}
                     required
                     disabled={isLoading}
                     placeholder="seu@email.com"
-                    className="w-full pl-11 lg:pl-12 pr-4 py-3 lg:py-4 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl lg:rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all duration-300 disabled:opacity-50"
+                    className="w-full pl-11 lg:pl-12 pr-4 py-3 lg:py-4 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl lg:rounded-2xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 dark:focus:ring-orange-900/20 transition-all duration-300 disabled:opacity-50 lowercase"
                   />
                 </div>
               </div>
@@ -134,7 +146,7 @@ export default function Login() {
                     type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
-                    onChange={handleChange}
+                    onChange={handlePasswordChange}
                     required
                     disabled={isLoading}
                     placeholder="••••••••"
@@ -179,7 +191,7 @@ export default function Login() {
             {/* Info Box */}
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
               <p className="text-xs lg:text-sm text-blue-700 dark:text-blue-300 text-center">
-                💡 <strong>Acesso Autorizado:</strong> Credenciais válidas para administradores
+                💡 <strong>Acesso Restrito:</strong> Apenas administradores autorizados
               </p>
             </div>
           </div>

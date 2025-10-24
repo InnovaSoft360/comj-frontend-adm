@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaChevronDown } from 'react-icons/fa';
+import { useAuth, getUserInitials } from '@/hooks/useAuth';
 
 export default function TopBar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -9,21 +10,14 @@ export default function TopBar() {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
 
-  // ✅ AGORA DEFINIDO DENTRO DO COMPONENTE
   const menuItems = [
     { icon: <FaHome className="w-4 h-4" />, label: 'Dashboard', path: '/analytics' },
     { icon: <FaUserFriends className="w-4 h-4" />, label: 'Candidaturas', path: '/candidates' },
     { icon: <FaUsers className="w-4 h-4" />, label: 'Usuários', path: '/users' },
     { icon: <FaCog className="w-4 h-4" />, label: 'Sistema', path: '/system' },
   ];
-
-  // Simulação de usuário
-  const user = {
-    name: 'Domingos Nascimento',
-    role: 'Administrador',
-    initials: 'DN'
-  };
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -43,7 +37,7 @@ export default function TopBar() {
   }, []);
 
   const handleLogout = () => {
-    navigate('/login');
+    logout();
     setUserMenuOpen(false);
   };
 
@@ -122,7 +116,7 @@ export default function TopBar() {
                   className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                    {user.initials}
+                    {user ? getUserInitials(user) : 'US'}
                   </div>
                 </button>
 
@@ -130,14 +124,16 @@ export default function TopBar() {
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
                     {/* User Info */}
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                        {user.name}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {user.role}
-                      </p>
-                    </div>
+                    {user && (
+                      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                          {user.firstName} {user.lastName}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Administrador
+                        </p>
+                      </div>
+                    )}
 
                     {/* Menu Items */}
                     <div className="py-1">
