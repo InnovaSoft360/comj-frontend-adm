@@ -1,6 +1,6 @@
 import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom'; // ✅ Remove useNavigate
 import { useAuth, getUserInitials } from '@/hooks/useAuth';
 
 interface SidebarProps {
@@ -20,8 +20,7 @@ const menuItems = [
 
 export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose, onToggleSidebar }: SidebarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const location = useLocation(); // ✅ Mantém apenas useLocation
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
