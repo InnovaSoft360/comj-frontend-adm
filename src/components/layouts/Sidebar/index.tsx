@@ -1,7 +1,9 @@
+// components/Sidebar.tsx
 import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom'; // ✅ Remove useNavigate
+import { useLocation, Link } from 'react-router-dom';
 import { useAuth, getUserInitials } from '@/hooks/useAuth';
+import { API_CONFIG } from '@/libs/config';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,8 +22,15 @@ const menuItems = [
 
 export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose, onToggleSidebar }: SidebarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const location = useLocation(); // ✅ Mantém apenas useLocation
+  const location = useLocation();
   const { user, logout } = useAuth();
+
+  // CORREÇÃO: Construir URL da foto
+  const userPhoto = user?.photoUrl 
+    ? `${API_CONFIG.baseURL}${user.photoUrl}`
+    : null;
+  
+  const showImage = userPhoto && userPhoto.trim() !== '';
 
   const handleLogout = () => {
     logout();
@@ -150,9 +159,21 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
                 ${isCollapsed ? 'justify-center' : ''}
               `}
             >
-              {/* Avatar */}
-              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:scale-110 transition-transform duration-300">
-                {user ? getUserInitials(user) : 'US'}
+              {/* CORREÇÃO: Mostrar foto ou iniciais */}
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm group-hover:scale-110 transition-transform duration-300 overflow-hidden">
+                {showImage ? (
+                  <img 
+                    src={userPhoto}
+                    alt={`${user.firstName} ${user.lastName}`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.log('Erro ao carregar imagem no Sidebar');
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <span>{getUserInitials(user)}</span>
+                )}
               </div>
               
               {/* User Info */}

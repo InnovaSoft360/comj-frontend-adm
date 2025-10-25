@@ -23,8 +23,10 @@ import {
   FaChartPie,
   FaArrowUp,
   FaArrowDown,
-  FaSync
+  FaSync,
+  FaCircle
 } from 'react-icons/fa';
+import { useDashboardData } from '@/hooks/useDashboardData';
 
 // Registra os componentes do Chart.js
 ChartJS.register(
@@ -40,11 +42,25 @@ ChartJS.register(
 );
 
 export default function Analytics() {
+  const { 
+    stats, 
+    loading, 
+    error, 
+    refetch,
+    lastUpdate,
+    getMonthlyApplications,
+    getUserGrowthData,
+    getConversionRate
+  } = useDashboardData();
+
+  const currentYear = new Date().getFullYear();
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
   // Dados para os cards principais
   const mainStats = [
     { 
       title: 'Total de Usuários', 
-      value: '2,548', 
+      value: stats?.totalUsers?.toString() || '0', 
       color: 'from-blue-500 to-cyan-500',
       icon: <FaUsers className="w-6 h-6" />,
       trend: '+12%',
@@ -52,7 +68,7 @@ export default function Analytics() {
     },
     { 
       title: 'Total de Clientes', 
-      value: '1,892', 
+      value: stats?.totalClients?.toString() || '0', 
       color: 'from-green-500 to-emerald-500',
       icon: <FaUserTie className="w-6 h-6" />,
       trend: '+8%',
@@ -60,7 +76,7 @@ export default function Analytics() {
     },
     { 
       title: 'Administradores', 
-      value: '24', 
+      value: stats?.totalAdmins?.toString() || '0', 
       color: 'from-purple-500 to-violet-500',
       icon: <FaUserShield className="w-6 h-6" />,
       trend: '+2',
@@ -72,7 +88,7 @@ export default function Analytics() {
   const sideStats = [
     { 
       title: 'Aprovadas', 
-      value: '856', 
+      value: stats?.approvedApplications?.toString() || '0', 
       color: 'bg-gradient-to-r from-green-500 to-emerald-500',
       icon: <FaCheckCircle className="w-4 h-4" />,
       percentage: '+12%',
@@ -80,7 +96,7 @@ export default function Analytics() {
     },
     { 
       title: 'Rejeitadas', 
-      value: '342', 
+      value: stats?.rejectedApplications?.toString() || '0', 
       color: 'bg-gradient-to-r from-red-500 to-rose-500',
       icon: <FaTimesCircle className="w-4 h-4" />,
       percentage: '-5%',
@@ -88,7 +104,7 @@ export default function Analytics() {
     },
     { 
       title: 'Pendentes', 
-      value: '156', 
+      value: stats?.pendingApplications?.toString() || '0', 
       color: 'bg-gradient-to-r from-yellow-500 to-amber-500',
       icon: <FaPauseCircle className="w-4 h-4" />,
       percentage: '+3%',
@@ -96,13 +112,13 @@ export default function Analytics() {
     },
   ];
 
-  // Dados para o gráfico de barras (Candidaturas por mês)
+  // 📊 Gráfico de candidaturas mensais - ANO ATUAL
   const barData = {
-    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+    labels: months,
     datasets: [
       {
         label: 'Candidaturas Recebidas',
-        data: [65, 78, 90, 81, 86, 95, 120, 110, 105, 98, 115, 130],
+        data: getMonthlyApplications(),
         backgroundColor: 'rgba(249, 115, 22, 0.8)',
         borderColor: 'rgb(249, 115, 22)',
         borderWidth: 2,
@@ -112,7 +128,6 @@ export default function Analytics() {
     ],
   };
 
-  // Opções SIMPLIFICADAS para evitar erros TypeScript
   const barOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -122,18 +137,18 @@ export default function Analytics() {
       },
       title: {
         display: true,
-        text: 'Candidaturas Mensais - 2024',
+        text: `Candidaturas Mensais - ${currentYear}`,
       },
     },
   };
 
-  // Dados para o gráfico de linha (Evolução de usuários)
+  // 📈 Evolução de usuários - DADOS REAIS
   const lineData = {
-    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+    labels: months,
     datasets: [
       {
-        label: 'Novos Usuários',
-        data: [120, 150, 180, 200, 240, 280, 320, 350, 380, 420, 460, 500],
+        label: 'Total de Usuários',
+        data: getUserGrowthData(),
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         borderWidth: 3,
@@ -157,28 +172,30 @@ export default function Analytics() {
       },
       title: {
         display: true,
-        text: 'Evolução de Novos Usuários',
+        text: `Evolução de Usuários - ${currentYear}`,
       },
     },
   };
 
-  // Dados para o gráfico de pizza (Status das Candidaturas)
+  // 🥧 Gráfico de status das candidaturas
   const doughnutData = {
-    labels: ['Aprovadas', 'Rejeitadas', 'Pendentes', 'Canceladas'],
+    labels: ['Aprovadas', 'Rejeitadas', 'Pendentes'],
     datasets: [
       {
-        data: [45, 25, 20, 10],
+        data: [
+          stats?.approvedApplications || 0,
+          stats?.rejectedApplications || 0, 
+          stats?.pendingApplications || 0
+        ],
         backgroundColor: [
           'rgba(34, 197, 94, 0.9)',
           'rgba(239, 68, 68, 0.9)',
           'rgba(59, 130, 246, 0.9)',
-          'rgba(245, 158, 11, 0.9)',
         ],
         borderColor: [
           'rgb(34, 197, 94)',
           'rgb(239, 68, 68)',
           'rgb(59, 130, 246)',
-          'rgb(245, 158, 11)',
         ],
         borderWidth: 3,
         borderRadius: 5,
@@ -198,27 +215,103 @@ export default function Analytics() {
     },
   };
 
+  const conversionRate = getConversionRate();
+
+  if (loading) {
+    return (
+      <div className="w-full max-w-full space-y-6">
+        <div className="text-center lg:text-left">
+          <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+            Dashboard Analytics
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
+            Carregando dados em tempo real...
+          </p>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-center space-x-3">
+            <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-gray-600 dark:text-gray-300">Carregando dados...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full max-w-full space-y-6">
+        <div className="text-center lg:text-left">
+          <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+            Dashboard Analytics
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
+            Erro ao carregar dados
+          </p>
+        </div>
+        
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaTimesCircle className="w-8 h-8 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+              Erro ao carregar dados
+            </h3>
+            <p className="text-red-600 dark:text-red-300 mb-4">
+              {error}
+            </p>
+            <button
+              onClick={refetch}
+              className="flex items-center space-x-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors mx-auto"
+            >
+              <FaSync className="w-4 h-4" />
+              <span>Tentar Novamente</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    // ✅ REMOVIDO: <DashboardLayout>
     <div className="w-full max-w-full space-y-6">
-      {/* Page Header */}
-      <div className="text-center lg:text-left">
-        <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-          Dashboard Analytics
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
-          Visão geral completa em tempo real
-        </p>
+      {/* Header com auto-update indicator */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div className="text-center lg:text-left">
+          <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+            Dashboard Analytics
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2 text-lg">
+            Dados em tempo real • Atualiza automaticamente
+          </p>
+          {lastUpdate && (
+            <div className="flex items-center justify-center lg:justify-start space-x-2 mt-1">
+              <FaCircle className="w-2 h-2 text-green-500 animate-pulse" />
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Última atualização: {lastUpdate}
+              </span>
+            </div>
+          )}
+        </div>
+        
+        <button
+          onClick={refetch}
+          className="flex items-center space-x-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors mt-4 lg:mt-0"
+        >
+          <FaSync className="w-4 h-4" />
+          <span>Atualizar Dados</span>
+        </button>
       </div>
 
-      {/* Cards Principais - SUPER MODERNOS */}
+      {/* Cards Principais */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
         {mainStats.map((stat, index) => (
           <div 
             key={index}
             className="group relative bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-2xl border border-gray-200/50 dark:border-gray-700/50 hover:shadow-3xl transition-all duration-500 hover:scale-105 backdrop-blur-sm overflow-hidden"
           >
-            {/* Efeito de brilho no hover */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
             
             <div className="relative z-10">
@@ -248,7 +341,6 @@ export default function Analytics() {
                 </p>
               </div>
 
-              {/* Barra de progresso gradiente */}
               <div className={`w-full h-1 bg-gradient-to-r ${stat.color} rounded-full mt-4 group-hover:h-2 transition-all duration-300`}></div>
             </div>
           </div>
@@ -304,7 +396,7 @@ export default function Analytics() {
 
         {/* Coluna Lateral - 1/4 da largura */}
         <div className="xl:col-span-1 space-y-6">
-          {/* Cards Laterais - SUPER ESTILIZADOS */}
+          {/* Cards Laterais */}
           {sideStats.map((stat, index) => (
             <div 
               key={index}
@@ -332,7 +424,6 @@ export default function Analytics() {
                   {stat.value}
                 </p>
                 
-                {/* Barra de progresso */}
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-3">
                   <div className={`h-1.5 rounded-full ${stat.color} transition-all duration-1000`} 
                        style={{ width: `${Math.random() * 80 + 20}%` }}></div>
@@ -341,7 +432,7 @@ export default function Analytics() {
             </div>
           ))}
 
-          {/* Card de Taxa de Conversão - ESPECIAL */}
+          {/* Card de Taxa de Conversão */}
           <div className="group relative bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-6 shadow-2xl text-white hover:shadow-3xl transition-all duration-500 hover:scale-105 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
             <div className="relative z-10 text-center">
@@ -349,10 +440,10 @@ export default function Analytics() {
                 <FaSync className="w-6 h-6" />
               </div>
               <p className="text-sm font-medium mb-2 opacity-90">Taxa de Conversão</p>
-              <p className="text-3xl font-bold mb-2">68%</p>
+              <p className="text-3xl font-bold mb-2">{conversionRate}%</p>
               <p className="text-xs opacity-80 mb-4">Aprovações vs Total</p>
               <div className="w-full bg-white/30 rounded-full h-2">
-                <div className="bg-white rounded-full h-2 transition-all duration-1000" style={{ width: '68%' }}></div>
+                <div className="bg-white rounded-full h-2 transition-all duration-1000" style={{ width: `${conversionRate}%` }}></div>
               </div>
             </div>
           </div>

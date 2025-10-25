@@ -1,7 +1,9 @@
+// components/TopBar.tsx
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaChevronDown } from 'react-icons/fa';
 import { useAuth, getUserInitials } from '@/hooks/useAuth';
+import { API_CONFIG } from '@/libs/config';
 
 export default function TopBar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -18,6 +20,13 @@ export default function TopBar() {
     { icon: <FaUsers className="w-4 h-4" />, label: 'Usuários', path: '/users' },
     { icon: <FaCog className="w-4 h-4" />, label: 'Sistema', path: '/system' },
   ];
+
+  // CORREÇÃO: Construir URL da foto
+  const userPhoto = user?.photoUrl 
+    ? `${API_CONFIG.baseURL}${user.photoUrl}`
+    : null;
+  
+  const showImage = userPhoto && userPhoto.trim() !== '';
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -115,8 +124,21 @@ export default function TopBar() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm">
-                    {user ? getUserInitials(user) : 'US'}
+                  {/* CORREÇÃO: Mostrar foto ou iniciais */}
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm overflow-hidden">
+                    {showImage ? (
+                      <img 
+                        src={userPhoto}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log('Erro ao carregar imagem no TopBar');
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <span>{getUserInitials(user)}</span>
+                    )}
                   </div>
                 </button>
 
