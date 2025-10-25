@@ -3,14 +3,12 @@ import { FaCheck, FaTimes, FaEdit } from 'react-icons/fa';
 
 interface EnableEditModalProps {
   isOpen: boolean;
-  onClose: () => void;
   onConfirm: (enableEdit: boolean) => void;
   isLoading?: boolean;
 }
 
 export default function EnableEditModal({
   isOpen,
-  onClose,
   onConfirm,
   isLoading = false
 }: EnableEditModalProps) {

@@ -46,7 +46,6 @@ export default function ViewApplicationModal({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showRejectCommentModal, setShowRejectCommentModal] = useState(false);
   const [showEnableEditModal, setShowEnableEditModal] = useState(false);
-  const [pendingRejectComment, setPendingRejectComment] = useState<string>('');
   
   const { application, isLoading, error, getApplicationDetails, resetState } = useApplicationDetails();
   const { approveApplication, isLoading: isApproving, success: approveSuccess, resetState: resetApproveState } = useApproveApplication();
@@ -97,7 +96,6 @@ export default function ViewApplicationModal({
       setShowConfirmModal(false);
       setShowRejectCommentModal(false);
       setShowEnableEditModal(false);
-      setPendingRejectComment('');
     }
   }, [isOpen, applicationId]);
 
@@ -111,7 +109,6 @@ export default function ViewApplicationModal({
       setShowConfirmModal(false);
       setShowRejectCommentModal(false);
       setShowEnableEditModal(false);
-      setPendingRejectComment('');
     }
   }, [approveSuccess, rejectSuccess, enableSuccess, applicationId]);
 
@@ -158,7 +155,6 @@ export default function ViewApplicationModal({
 
   const handleRejectConfirm = async (comment: string) => {
     if (applicationId) {
-      setPendingRejectComment(comment);
       const success = await rejectApplication(applicationId, comment);
       if (success) {
         setShowEnableEditModal(true);
@@ -169,9 +165,6 @@ export default function ViewApplicationModal({
   const handleEnableEditConfirm = async (enableEdit: boolean) => {
     if (applicationId && enableEdit) {
       await enableRejected(applicationId);
-    } else {
-      // Apenas fechar o modal se não quiser permitir edição
-      setShowEnableEditModal(false);
     }
   };
 
@@ -427,7 +420,6 @@ export default function ViewApplicationModal({
       {/* Modal para Permitir Edição */}
       <EnableEditModal
         isOpen={showEnableEditModal}
-        onClose={() => setShowEnableEditModal(false)}
         onConfirm={handleEnableEditConfirm}
         isLoading={isEnabling}
       />
