@@ -1,6 +1,6 @@
 // components/modals/DeleteAccountModal.tsx
 import { useState, useEffect } from 'react';
-import { FaTimes, FaExclamationTriangle, FaCheck, FaTrash, FaSignOutAlt } from 'react-icons/fa';
+import { FaTimes, FaExclamationTriangle, FaCheck, FaSignOutAlt } from 'react-icons/fa';
 import { useDeleteAccount } from '@/hooks/useDeleteAccount';
 
 interface DeleteAccountModalProps {

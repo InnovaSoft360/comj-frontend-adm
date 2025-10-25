@@ -197,7 +197,7 @@ export function useDashboardData() {
     const monthlyGrowth = Array(12).fill(0);
     const currentYear = new Date().getFullYear();
     
-    sortedUsers.forEach((user, index) => {
+    sortedUsers.forEach((user) => {
       const userDate = new Date(user.createdAt || new Date());
       if (userDate.getFullYear() === currentYear) {
         const month = userDate.getMonth();

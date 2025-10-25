@@ -19,7 +19,6 @@ import CreateUserModal from '@/components/modals/CreateUserModal';
 import RestoreAccountModal from '@/components/modals/RestoreAccountModal';
 import { useUsers, type User } from '@/hooks/useUsers';
 import { useUserByBI } from '@/hooks/useUserByBI';
-import { useRestoreAccount } from '@/hooks/useRestoreAccount';
 
 // Constantes para os roles
 const ROLE_ADMIN = 0;
