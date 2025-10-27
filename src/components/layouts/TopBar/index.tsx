@@ -1,18 +1,19 @@
 // components/TopBar.tsx
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaChevronDown } from 'react-icons/fa';
+import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaChevronDown, FaSpinner } from 'react-icons/fa';
 import { useAuth, getUserInitials } from '@/hooks/useAuth';
 import { API_CONFIG } from '@/libs/config';
 
 export default function TopBar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
 
   const menuItems = [
     { icon: <FaHome className="w-4 h-4" />, label: 'Dashboard', path: '/analytics' },
@@ -45,9 +46,16 @@ export default function TopBar() {
     };
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    setUserMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+    } catch (error) {
+      console.error('Erro durante logout:', error);
+    } finally {
+      setIsLoggingOut(false);
+      setUserMenuOpen(false);
+    }
   };
 
   const handleNavigation = (path: string) => {
@@ -173,10 +181,15 @@ export default function TopBar() {
                     <div className="border-t border-gray-100 dark:border-gray-700 pt-1">
                       <button 
                         onClick={handleLogout}
-                        className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"
+                        disabled={isLoggingOut || isLoading}
+                        className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <FaSignOutAlt className="w-4 h-4" />
-                        <span>Sair</span>
+                        {isLoggingOut ? (
+                          <FaSpinner className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <FaSignOutAlt className="w-4 h-4" />
+                        )}
+                        <span>{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
                       </button>
                     </div>
                   </div>

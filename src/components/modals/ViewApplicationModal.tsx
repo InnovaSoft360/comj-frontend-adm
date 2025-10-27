@@ -19,6 +19,7 @@ import { useApplicationDetails } from '@/hooks/useApplicationDetails';
 import { useApproveApplication } from '@/hooks/useApproveApplication';
 import { useRejectApplication } from '@/hooks/useRejectApplication';
 import { useEnableRejected } from '@/hooks/useEnableRejected';
+import { API_CONFIG } from '@/libs/config'; // ← Corrigido: importar do config.ts
 import ConfirmActionModal from './ConfirmActionModal';
 import RejectCommentModal from './RejectCommentModal';
 import EnableEditModal from './EnableEditModal';
@@ -52,12 +53,13 @@ export default function ViewApplicationModal({
   const { rejectApplication, isLoading: isRejecting, success: rejectSuccess, resetState: resetRejectState } = useRejectApplication();
   const { enableRejected, isLoading: isEnabling, success: enableSuccess, resetState: resetEnableState } = useEnableRejected();
 
-  // Construir URLs completas para os documentos
+  // Construir URLs completas para os documentos usando API_CONFIG
   const buildDocumentUrl = (relativeUrl: string): string => {
     if (!relativeUrl) return '';
     if (relativeUrl.startsWith('http')) return relativeUrl;
-    const baseUrl = 'https://localhost:7209';
-    return `${baseUrl}${relativeUrl}`;
+    
+    // Usar API_CONFIG.baseURL para construir a URL completa
+    return `${API_CONFIG.baseURL}${relativeUrl}`;
   };
 
   const documents: Document[] = [
@@ -99,18 +101,41 @@ export default function ViewApplicationModal({
     }
   }, [isOpen, applicationId]);
 
+  // Efeito separado para aprovação
   useEffect(() => {
-    if ((approveSuccess || rejectSuccess || enableSuccess) && applicationId) {
-      // Recarregar os detalhes da aplicação para atualizar o status
+    if (approveSuccess && applicationId) {
       getApplicationDetails(applicationId);
       if (onStatusChange) {
         onStatusChange();
       }
       setShowConfirmModal(false);
-      setShowRejectCommentModal(false);
-      setShowEnableEditModal(false);
     }
-  }, [approveSuccess, rejectSuccess, enableSuccess, applicationId]);
+  }, [approveSuccess, applicationId]);
+
+  // Efeito separado para rejeição
+  useEffect(() => {
+    if (rejectSuccess && applicationId) {
+      // Não fechar o modal de rejeição aqui - vamos mostrar o EnableEditModal
+      // Apenas recarregar os dados
+      getApplicationDetails(applicationId);
+      if (onStatusChange) {
+        onStatusChange();
+      }
+      // Não fechar showRejectCommentModal aqui - vamos mostrar EnableEditModal
+    }
+  }, [rejectSuccess, applicationId]);
+
+  // Efeito separado para enable rejected
+  useEffect(() => {
+    if (enableSuccess && applicationId) {
+      getApplicationDetails(applicationId);
+      if (onStatusChange) {
+        onStatusChange();
+      }
+      setShowEnableEditModal(false);
+      setShowRejectCommentModal(false);
+    }
+  }, [enableSuccess, applicationId]);
 
   const nextDocument = () => {
     if (activeDocumentIndex < documents.length - 1) {
@@ -157,14 +182,21 @@ export default function ViewApplicationModal({
     if (applicationId) {
       const success = await rejectApplication(applicationId, comment);
       if (success) {
+        // Fechar o modal de comentário e abrir o modal de edição
+        setShowRejectCommentModal(false);
         setShowEnableEditModal(true);
       }
     }
   };
 
   const handleEnableEditConfirm = async (enableEdit: boolean) => {
-    if (applicationId && enableEdit) {
-      await enableRejected(applicationId);
+    if (applicationId) {
+      if (enableEdit) {
+        await enableRejected(applicationId);
+      } else {
+        // Se não quiser permitir edição, apenas fechar o modal
+        setShowEnableEditModal(false);
+      }
     }
   };
 
