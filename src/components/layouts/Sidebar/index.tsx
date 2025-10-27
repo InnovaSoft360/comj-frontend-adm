@@ -1,5 +1,5 @@
 // components/Sidebar.tsx
-import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaHome, FaUsers, FaUserFriends, FaCog, FaSignOutAlt, FaUser, FaTimes, FaChevronLeft, FaChevronRight, FaSpinner } from 'react-icons/fa';
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { useAuth, getUserInitials } from '@/hooks/useAuth';
@@ -22,8 +22,9 @@ const menuItems = [
 
 export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose, onToggleSidebar }: SidebarProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
 
   // CORREÇÃO: Construir URL da foto
   const userPhoto = user?.photoUrl 
@@ -32,9 +33,16 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
   
   const showImage = userPhoto && userPhoto.trim() !== '';
 
-  const handleLogout = () => {
-    logout();
-    setUserMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logout();
+    } catch (error) {
+      console.error('Erro durante logout:', error);
+    } finally {
+      setIsLoggingOut(false);
+      setUserMenuOpen(false);
+    }
   };
 
   const handleLinkClick = () => {
@@ -213,10 +221,15 @@ export default function Sidebar({ isOpen, isCollapsed, onToggleCollapse, onClose
                 
                 <button 
                   onClick={handleLogout}
-                  className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 hover:scale-105"
+                  disabled={isLoggingOut || isLoading}
+                  className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <FaSignOutAlt className="w-3 h-3" />
-                  <span>Sair</span>
+                  {isLoggingOut ? (
+                    <FaSpinner className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <FaSignOutAlt className="w-3 h-3" />
+                  )}
+                  <span>{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
                 </button>
               </div>
             )}

@@ -1,3 +1,4 @@
+// hooks/useAuth.ts
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '@/libs/api';
@@ -28,11 +29,12 @@ export function AuthProvider(props: { children: any }) {
           setUser(userData);
           setIsAuthenticated(true);
         } else {
-          logout();
+          await logout();
         }
       }
     } catch (error) {
       console.error('Erro ao verificar autenticação:', error);
+      await logout();
     } finally {
       setIsLoading(false);
     }
@@ -70,10 +72,27 @@ export function AuthProvider(props: { children: any }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    navigate('/login');
+  const logout = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Chamar endpoint de logout
+      await api.post('/v1/Auth/Logout');
+      
+      console.log('Logout realizado com sucesso');
+      
+    } catch (error: any) {
+      console.error('Erro ao fazer logout na API:', error);
+      // Mesmo se a API falhar, continuamos com o logout local
+    } finally {
+      // Sempre limpar o estado local
+      setUser(null);
+      setIsAuthenticated(false);
+      setIsLoading(false);
+      
+      // Redirecionar para login
+      navigate('/login', { replace: true });
+    }
   };
 
   const value = {
